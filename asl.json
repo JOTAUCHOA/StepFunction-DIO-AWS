@@ -1,0 +1,59 @@
+{
+  "Comment": "Sistema bancário com integração direta ao DynamoDB e SNS usando JSONata - DIO",
+  "StartAt": "Passagem",
+  "States": {
+    "Passagem": {
+      "Type": "Pass",
+      "Next": "DynamoDB GetItem"
+    },
+    "DynamoDB GetItem": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:getItem",
+      "Arguments": {
+        "TableName": "ValueSalary",
+        "Key": {
+          "Column": {
+            "N": "12345"
+          }
+        }
+      },
+      "Output": {
+        "Item": "{% $states.result.Item %}"
+      },
+      "Next": "CheckstatusValueMoney"
+    },
+    "CheckstatusValueMoney": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Condition": "{% $states.input.Item.Value.N >= 0 %}",
+          "Next": "HasPositiveValue"
+        },
+        {
+          "Condition": "{% $states.input.Item.Value.N < 0 %}",
+          "Next": "HasNegativeValue"
+        }
+      ],
+      "Default": "HasPositiveValue"
+    },
+    "HasPositiveValue": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Arguments": {
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:MeuTopicoSucesso",
+        "Message": "{% 'Saldo positivo ou zerado: ' & $states.input.Item.Value.N %}"
+      },
+      "End": true
+    },
+    "HasNegativeValue": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Arguments": {
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:MeuTopicoAlerta",
+        "Message": "{% 'Atenção! Conta com saldo negativo: ' & $states.input.Item.Value.N %}"
+      },
+      "End": true
+    }
+  },
+  "QueryLanguage": "JSONata"
+}
