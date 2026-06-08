@@ -1,4 +1,4 @@
-# StepFunction-DIO-AWS
+# StepFunction-DIO-AWS-valida-saldo-positvoOuNegativo
 Este é o meu primeiro stepfuction criado na AWS que foi entregue no desafio da DIO.
 
 Pontos que achei interesante ao criação.
